@@ -23,7 +23,6 @@ git clone https://github.com/LeeLee-00/EV-Data-Visualizer-Streamlit
 
 2. Install dependencies:
 ```bash
-cd url-graph
 pip install -r requirements.txt
 ```
 
