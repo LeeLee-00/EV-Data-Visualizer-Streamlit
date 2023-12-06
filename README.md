@@ -30,5 +30,5 @@ pip install -r requirements.txt
 ### Running App
 3. Start the Streamlit App.
 ```bash
-streamlit run app.py
+streamlit run main.py
 ```
