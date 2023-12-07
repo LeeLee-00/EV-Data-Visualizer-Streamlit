@@ -1,12 +1,13 @@
 import requests
 import pandas as pd
+import streamlit as st
 
 def fetch_data(url, limit=1000):
     all_data = []
     offset = 0
 
-    # placeholder = st.empty()
-    # placeholder.text("Fetching data... Please wait.")
+    placeholder = st.empty()
+    placeholder.text("Fetching data... Please wait.")
 
     while True:
         # Make an API request with the specified limit and offset
@@ -21,7 +22,7 @@ def fetch_data(url, limit=1000):
         offset += limit  # Increase the offset for the next request
 
     # Remove the loading message once data is fetched
-    # placeholder.empty()
+    placeholder.empty()
 
     return all_data
 
