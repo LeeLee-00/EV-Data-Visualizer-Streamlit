@@ -1,69 +1,18 @@
-import requests
 import streamlit as st
-import pandas as pd
-import pydeck as pdk
+import data_processing as Dprocessing
+import visualizatons as visuals
 
 # Streamlit UI layout
 st.title("Welcome to the EV Car Data Visualizer Streamlit App")
 st.subheader('This dataset shows the Battery Electric Vehicles (BEVs) and Plug-in Hybrid Electric Vehicles (PHEVs) that are currently registered through Washington State Department of Licensing (DOL).')
 
-# Function to fetch data from the API with pagination
-@st.cache_data
-def fetch_data(url, limit=1000):
-    all_data = []
-    offset = 0
 
-    # placeholder = st.empty()
-    # placeholder.text("Fetching data... Please wait.")
-
-    while True:
-        # Make an API request with the specified limit and offset
-        response = requests.get(url, params={'$limit': limit, '$offset': offset})
-        response.raise_for_status()  # Raise an exception for HTTP errors
-
-        data = response.json()
-        if not data:  # If no data is returned, exit the loop
-            break
-
-        all_data.extend(data)  # Add the fetched data to the all_data list
-        offset += limit  # Increase the offset for the next request
-
-    # Remove the loading message once data is fetched
-    # placeholder.empty()
-
-    return all_data
-
-# URL of the API to fetch data from
-api_url = 'https://data.wa.gov/resource/f6w7-q2d2.json'
-
-# Fetching the data and converting it to a DataFrame
-data = pd.DataFrame(fetch_data(api_url))
-
-# Function to extract latitude and longitude from a Point object
-def extract_lat_lon(Point):
-    if isinstance(Point, dict) and 'coordinates' in Point:
-        return Point['coordinates'][1], Point['coordinates'][0]
-    else:
-        return None, None
-
-# Extracting latitude and longitude and adding them as new columns
-data[['latitude', 'longitude']] = data['geocoded_column'].apply(lambda x: pd.Series(extract_lat_lon(x)))
-
-# Dropping the original 'geocoded_column'
-data = data.drop(columns=['geocoded_column'])
-
-# Filtering data to only include rows where the state is WA
-dataWA = data.drop(data[data['state'] != 'WA'].index)
-
-# Displaying the dataset if it's not empty
-if not dataWA.empty:
-    with st.container():
+with st.container():
         st.header('EV Car Dataset')
-        st.dataframe(dataWA)
-
+        st.dataframe(Dprocessing.dataWA)
         st.subheader('Dataset Description')
    # Write the description using markdown for formatted display
-    st.markdown("""
+st.markdown("""
         | Column Name | Description |
         | ----------- | ----------- |
         | VIN (1-10) | The 1st 10 characters of each vehicle's Vehicle Identification Number (VIN). |
@@ -85,29 +34,6 @@ if not dataWA.empty:
     """, unsafe_allow_html=True)
     
 
-    with st.container():
+with st.container():
         st.header('Mapped Locations')
-        # Setting the viewport location around Washington
-        view_state = pdk.ViewState(
-            latitude=47.7511,  # Latitude for Washington's geographic center
-            longitude=-120.7401,  # Longitude for Washington's geographic center
-            zoom=5,
-            pitch=0
-        )
-
-        # Creating PyDeck ScatterplotLayer for the map
-        layer = pdk.Layer(
-            "ScatterplotLayer",
-            data=dataWA,
-            get_position=["longitude", "latitude"],
-            auto_highlight=True,
-            get_radius=1000,  # Radius in meters
-            get_fill_color=[180, 0, 200, 140],  # RGBA value for fill color
-            pickable=True
-        )
-
-        # Creating and displaying the PyDeck map
-        st.pydeck_chart(pdk.Deck(
-            initial_view_state=view_state,
-            layers=[layer],
-        ))
+        visuals.create_map(Dprocessing.dataWA)
